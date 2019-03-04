@@ -29,6 +29,7 @@ $lang['openid_complete_disabled_text'] = 'You\'re correctly authenticated but re
 
 $lang['none'] = 'None.';
 
+$lang['force_openid_login'] = 'Force OpenID login';
 $lang['openid_identifier'] = 'OpenID identifier';
 $lang['openid_registration_denied'] = 'OpenID registration denied';
 $lang['openid_update_profile_denied'] = 'OpenID update profile denied';

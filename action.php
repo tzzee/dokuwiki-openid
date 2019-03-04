@@ -78,6 +78,12 @@ class action_plugin_openid extends DokuWiki_Action_Plugin {
 			$this,
 			'handle_act_unknown',
 			array());
+		if($this->getConf('force_openid_login')) {
+			$controller->register_hook('TPL_CONTENT_DISPLAY',
+				'BEFORE',
+				$this,
+				'handle_force_login_form');
+		}
 	}
 
 	/**
@@ -271,11 +277,7 @@ class action_plugin_openid extends DokuWiki_Action_Plugin {
 		$user = $_SERVER['REMOTE_USER'];
 
 		if (empty($user)) {
-			print $this->locale_xhtml('intro');
-			print '<div class="centeralign">'.NL;
-			$form = $this->get_openid_form('login');
-			html_form('register', $form);
-			print '</div>'.NL;
+			$this->intro_form();
 		} else if (preg_match('!^https?://!', $user)) {
 			echo '<h1>', $this->getLang('openid_account_fieldset'), '</h1>', NL;
 			if ($auth && $auth->canDo('addUser') && actionOK('register')) {
@@ -364,7 +366,16 @@ class action_plugin_openid extends DokuWiki_Action_Plugin {
 		$form->endFieldset();
 		return $form;
 	}
-    
+
+	function intro_form()
+	{
+		print $this->locale_xhtml('intro');
+		print '<div class="centeralign">'.NL;
+		$form = $this->get_openid_form('login');
+		html_form('register', $form);
+		print '</div>'.NL;
+	}
+
 	/**
 	 * Insert link to OpenID into usual login form
 	 */
@@ -374,6 +385,17 @@ class action_plugin_openid extends DokuWiki_Action_Plugin {
 		$msg = sprintf("<p>$msg</p>", $this->_self('openid'));
 		$pos = $event->data->findElementByAttribute('type', 'submit');
 		$event->data->insertElement($pos+2, $msg);
+	}
+
+	function handle_force_login_form(&$event, $param)
+	{
+		global $ACT,$ID;
+		if (($ACT == 'denied') && (! $_SERVER['REMOTE_USER'])) {
+			global $auth, $ID;
+			$event->stopPropagation();
+			$event->preventDefault();
+			$this->intro_form();
+		}
 	}
 
 	function handle_profile_form(&$event, $param)
